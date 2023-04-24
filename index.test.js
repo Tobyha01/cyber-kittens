@@ -120,13 +120,13 @@ describe('Endpoints', () => {
                 expect(response.status).toBe(401);
                 expect(response.text).toBe('Unauthorized');
             });
-            it('should return 401 if kitten not owned by user', async () => {
+            it('should return 403 if kitten not owned by user', async () => {
                 const {token, user} = await createTestUser({username: 'notbuster', password: 'notbustthis'});
                 const response = await request(app)
                     .get(`/kittens/${kitten.id}`)
                     .set('Authorization', `Bearer ${token}`);
-                expect(response.status).toBe(401);
-                expect(response.text).toBe('Unauthorized');
+                expect(response.status).toBe(403);
+                expect(response.text).toBe('Forbidden');
             });
         });
         describe('POST /kittens', () => {
