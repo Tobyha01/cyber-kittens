@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-const { User } = require('./db');
+const { User, Kitten } = require('./db');
+const jwt = require("jsonwebtoken")
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -56,7 +57,25 @@ app.use(function(request, response, next){
 
 // GET /kittens/:id
 // TODO - takes an id and returns the cat with that id
+app.get("/kittens/:id", async function(request, response, next){
+  // const {id} = request.params
+  try{
+    const kitten = await Kitten.findByPk(request.params.id)
+    if(!kitten){
+      response.sendStatus(404)
+    }
 
+    if(kitten.ownerId !== request.user.id){
+      response.sendStatus(403)
+    }
+    else{
+      response.send({name: kitten.name, age: kitten.age, color: kitten.color})
+    } 
+  }
+  catch(error){
+    next(error)
+  }
+})
 // POST /kittens
 // TODO - takes req.body of {name, age, color} and creates a new cat with the given name, age, and color
 
