@@ -21,7 +21,33 @@ app.get('/', async (req, res, next) => {
 
 // Verifies token with jwt.verify and sets req.user
 // TODO - Create authentication middleware
+app.use(function(request, response, next){
+  const header = request.get("Authorization")
+  if(!header){
+    console.error("Missing Authorization Header")
+    response.set("WWW-Authenticate", "Bearer")
+    response.sendStatus(401)
+    return
+  }
+  
+  const [type, token] = header.split(" ")
 
+  if(type.toLowerCase() !== "bearer" || !token){
+    console.error("Invalid token")
+    response.sendStatus(401)
+    return
+  }
+  
+  try{
+    const user = jwt.verify(token, process.env.JWT_SECRET)
+    request.user = user
+    next()
+  }
+  catch(error){
+    console.error(error)
+    response.sendStatus(401)
+  }
+})
 // POST /register
 // OPTIONAL - takes req.body of {username, password} and creates a new user with the hashed password
 
