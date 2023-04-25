@@ -78,9 +78,41 @@ app.get("/kittens/:id", async function(request, response, next){
 })
 // POST /kittens
 // TODO - takes req.body of {name, age, color} and creates a new cat with the given name, age, and color
+app.post("/kittens", async function(request, response, next){
+  try{
+    if(!request.user){
+      response.sendStatus(401)
+    }
+    else{
+      const kitten = await Kitten.create({name: request.body.name, age: request.body.age, color: request.body.color, ownerId: request.user.id})
+      response.status(201).send({name: kitten.name, age: kitten.age, color: kitten.color})
+    }
+  }
+  catch(error){
+    next(error)
+  }
+})
 
 // DELETE /kittens/:id
 // TODO - takes an id and deletes the cat with that id
+app.delete("/kittens/:id", async function(request, response, next){
+  try{
+    const kitten = await Kitten.findByPk(request.params.id)
+    if(!kitten){
+      response.sendStatus(404)
+    }
+    if(kitten.ownerId !== request.user.id){
+      response.sendStatus(403)
+    }
+    else{
+      await kitten.destroy()
+      response.sendStatus(204)
+    }
+  }
+  catch(error){
+    next(error)
+  }
+})
 
 // error handling middleware, so failed tests receive them
 app.use((error, req, res, next) => {
